@@ -1,0 +1,56 @@
+.budget-page {
+    padding-bottom: 20px;
+}
+
+.budget-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.budget-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 10px 0 20px 0;
+}
+
+.budget-form {
+    margin-bottom: 20px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.form-buttons .btn {
+    flex: 1;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.budget-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}

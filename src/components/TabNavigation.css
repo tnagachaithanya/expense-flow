@@ -1,0 +1,98 @@
+.tab-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--surface-color);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-top: 1px solid var(--surface-border);
+    padding: 8px 0;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    min-width: 60px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border-radius: 12px;
+    position: relative;
+}
+
+.tab-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-item.active {
+    color: var(--accent-color);
+}
+
+.tab-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 3px;
+    background: var(--accent-color);
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.tab-icon {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 4px;
+    transition: transform 0.3s ease;
+}
+
+.tab-item.active .tab-icon {
+    transform: scale(1.1);
+}
+
+.tab-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* Ensure content doesn't hide behind tab bar */
+.app-content {
+    padding-bottom: 80px;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+    .tab-label {
+        font-size: 0.65rem;
+    }
+
+    .tab-icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .tab-item {
+        min-width: 50px;
+        padding: 6px 8px;
+    }
+}
+
+/* Touch feedback */
+.tab-item:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+}

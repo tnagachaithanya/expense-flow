@@ -1,0 +1,14 @@
+1
+Opening login page and capturing screenshot and console logs
+
+2
+Awaiting user to open login page and confirm it renders, then test login with provided credentials
+
+3
+Awaiting user to open login page and test login with provided credentials
+
+4
+Waiting for user to open login page and test login with provided credentials
+
+5
+Awaiting user to open login page and test login with provided credentials
