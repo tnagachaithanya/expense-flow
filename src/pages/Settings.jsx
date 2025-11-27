@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlobalContext } from '../context/GlobalState';
 import { ThemeManager } from '../utils/ThemeManager';
+import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from '../utils/categories';
 import { useAuth } from '../context/AuthContext';
 import './Settings.css';
 
@@ -169,15 +170,10 @@ export const Settings = () => {
                         value={settings.defaultCategory}
                         onChange={(e) => handleSettingChange('defaultCategory', e.target.value)}
                     >
-                        <option value="Uncategorized">Uncategorized</option>
-                        <option value="Groceries">Groceries</option>
-                        <option value="Restaurants">Restaurants</option>
-                        <option value="Bills">Bills</option>
-                        <option value="Medicine">Medicine</option>
-                        <option value="Transportation">Transportation</option>
-                        <option value="Entertainment">Entertainment</option>
-                        <option value="Shopping">Shopping</option>
-                        <option value="Other">Other</option>
+                        <option value={DEFAULT_CATEGORY}>{DEFAULT_CATEGORY}</option>
+                        {EXPENSE_CATEGORIES.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
                     </select>
                 </div>
             </div>

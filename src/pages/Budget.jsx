@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { GlobalContext } from '../context/GlobalState';
 import { BudgetCard } from '../components/BudgetCard';
+import { EXPENSE_CATEGORIES } from '../utils/categories';
 import './Budget.css';
 
 export const Budget = () => {
@@ -10,7 +11,7 @@ export const Budget = () => {
     const [limit, setLimit] = useState('');
     const [editingId, setEditingId] = useState(null);
 
-    const categories = ['Groceries', 'Restaurants', 'Bills', 'Medicine', 'Transportation', 'Entertainment', 'Shopping', 'Other'];
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -94,7 +95,7 @@ export const Budget = () => {
                                 required
                             >
                                 <option value="">Select Category</option>
-                                {categories.map(cat => (
+                                {EXPENSE_CATEGORIES.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
                             </select>

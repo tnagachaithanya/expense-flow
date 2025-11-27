@@ -1,12 +1,13 @@
 import React, { useState, useContext } from 'react'
 import { useNavigate, Link } from 'react-router-dom';
 import { GlobalContext } from '../context/GlobalState';
+import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from '../utils/categories';
 
 export const AddTransaction = () => {
     const [text, setText] = useState('');
     const [amount, setAmount] = useState('');
     const [type, setType] = useState('expense'); // 'income' or 'expense'
-    const [category, setCategory] = useState('Uncategorized');
+    const [category, setCategory] = useState(DEFAULT_CATEGORY);
     const [error, setError] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
 
@@ -70,14 +71,10 @@ export const AddTransaction = () => {
                             className="form-input"
                             style={{ cursor: 'pointer', appearance: 'none' }}
                         >
-                            <option value="Uncategorized" style={{ color: 'black' }}>Select Category</option>
-                            <option value="Groceries" style={{ color: 'black' }}>Groceries</option>
-                            <option value="Transportation" style={{ color: 'black' }}>Transportation</option>
-                            <option value="Entertainment" style={{ color: 'black' }}>Entertainment</option>
-                            <option value="Bills" style={{ color: 'black' }}>Bills</option>
-                            <option value="Medicine" style={{ color: 'black' }}>Medicine</option>
-                            <option value="Food" style={{ color: 'black' }}>Food</option>
-                            <option value="Other" style={{ color: 'black' }}>Other</option>
+                            <option value={DEFAULT_CATEGORY} style={{ color: 'black' }}>Select Category</option>
+                            {EXPENSE_CATEGORIES.map(cat => (
+                                <option key={cat} value={cat} style={{ color: 'black' }}>{cat}</option>
+                            ))}
                         </select>
                     </div>
                 )}
