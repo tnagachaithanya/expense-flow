@@ -79,8 +79,8 @@ export const Settings = () => {
             // Clear caches
             const cacheNames = await caches.keys();
             await Promise.all(cacheNames.map(name => caches.delete(name)));
-            // Reload the page
-            window.location.reload(true);
+            // Navigate to home and reload
+            window.location.href = window.location.origin + import.meta.env.BASE_URL;
         } catch (error) {
             console.error('Force update failed:', error);
             alert('Failed to force update. Please try closing and reopening the app.');
