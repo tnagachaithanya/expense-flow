@@ -170,11 +170,11 @@ export const GlobalProvider = ({ children }) => {
 
     // Transaction actions – sync with Firestore when logged in
     const deleteTransaction = async id => {
-        dispatch({ type: 'DELETE_TRANSACTION', payload: id });
         if (currentUser) {
             const docRef = doc(db, `users/${currentUser.uid}/transactions`, id);
             await deleteDoc(docRef).catch(console.error);
         }
+        dispatch({ type: 'DELETE_TRANSACTION', payload: id });
     };
 
     const addTransaction = async transaction => {
@@ -272,7 +272,10 @@ export const GlobalProvider = ({ children }) => {
             await batch.commit().then(() => console.log("Batch commit successful")).catch(err => console.error("Batch commit failed:", err));
         }
 
-        localStorage.clear();
+        // Clear only app-specific localStorage, not auth
+        const keysToRemove = ['transactions', 'budgets', 'recurringTransactions', 'goals', 'settings', 'categories'];
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+
         dispatch({ type: 'RESET_STATE' });
     };
 

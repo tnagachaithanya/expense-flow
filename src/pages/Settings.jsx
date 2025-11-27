@@ -56,7 +56,7 @@ export const Settings = () => {
     const clearAllData = async () => {
         if (showClearConfirm) {
             await clearAllDataContext();
-            window.location.reload();
+            // State will automatically update via context, no need to reload
         } else {
             setShowClearConfirm(true);
             setTimeout(() => setShowClearConfirm(false), 5000);

@@ -46,14 +46,27 @@ export const TransactionList = ({ transactions: propTransactions }) => {
                                         {transaction.date ? new Date(transaction.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : 'No Date'}
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <span className={`money ${transaction.amount < 0 ? 'minus' : 'plus'}`} style={{ marginRight: '15px', fontWeight: 'bold' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <span className={`money ${transaction.amount < 0 ? 'minus' : 'plus'}`} style={{ fontWeight: 'bold' }}>
                                         {transaction.amount < 0 ? '-' : '+'}{currencySymbol}{Math.abs(transaction.amount).toFixed(2)}
                                     </span>
                                     <button
                                         onClick={() => navigate('/add', { state: { transaction } })}
                                         className="btn-edit"
-                                        style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.1rem' }}
+                                        style={{
+                                            background: 'var(--surface-bg)',
+                                            border: '1px solid var(--surface-border)',
+                                            color: 'var(--text-primary)',
+                                            cursor: 'pointer',
+                                            fontSize: '1.2rem',
+                                            padding: '8px 12px',
+                                            borderRadius: '5px',
+                                            minWidth: '44px',
+                                            minHeight: '44px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
                                         aria-label="Edit transaction"
                                     >
                                         <i className="fas fa-edit"></i>
