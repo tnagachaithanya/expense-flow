@@ -1,7 +1,7 @@
 import React, { createContext, useReducer, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, setDoc, writeBatch } from 'firebase/firestore';
 import { firebaseConfig } from '../firebase/firebaseConfig';
 
 // Initialize Firebase (once)
@@ -189,11 +189,43 @@ export const GlobalProvider = ({ children }) => {
     const updateSettings = async settings => {
         dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
         if (currentUser) {
-            const settingsCol = collection(db, `users/${currentUser.uid}/settings`);
             // Overwrite the single settings document (id "preferences")
             const docRef = doc(db, `users/${currentUser.uid}/settings`, 'preferences');
             await setDoc(docRef, settings, { merge: true }).catch(console.error);
         }
+    };
+
+    const clearAllData = async () => {
+        if (currentUser) {
+            const batch = writeBatch(db);
+
+            // Helper to queue deletions
+            const queueDeletes = async (collectionName) => {
+                try {
+                    const colRef = collection(db, `users/${currentUser.uid}/${collectionName}`);
+                    const snap = await getDocs(colRef);
+                    console.log(`Found ${snap.size} docs in ${collectionName}`);
+                    snap.forEach(doc => batch.delete(doc.ref));
+                } catch (err) {
+                    console.error(`Error clearing ${collectionName}:`, err);
+                }
+            };
+
+            console.log("Starting clear all data...");
+            await Promise.all([
+                queueDeletes('transactions'),
+                queueDeletes('budgets'),
+                queueDeletes('recurringTransactions'),
+                queueDeletes('goals'),
+                queueDeletes('settings')
+            ]);
+            console.log("Committing batch delete...");
+
+            await batch.commit().then(() => console.log("Batch commit successful")).catch(err => console.error("Batch commit failed:", err));
+        }
+
+        localStorage.clear();
+        dispatch({ type: 'RESET_STATE' });
     };
 
     return (
@@ -217,6 +249,7 @@ export const GlobalProvider = ({ children }) => {
                 updateGoal,
                 deleteGoal,
                 updateSettings,
+                clearAllData,
             }}
         >
             {children}

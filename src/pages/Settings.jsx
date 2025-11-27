@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import './Settings.css';
 
 export const Settings = () => {
-    const { settings, updateSettings, transactions, budgets, goals } = useContext(GlobalContext);
+    const { settings, updateSettings, transactions, budgets, goals, clearAllData: clearAllDataContext } = useContext(GlobalContext);
     const { currentUser, logout } = useAuth();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [currentTheme, setCurrentTheme] = useState(ThemeManager.getTheme());
@@ -59,13 +59,31 @@ export const Settings = () => {
         a.click();
     };
 
-    const clearAllData = () => {
+    const clearAllData = async () => {
         if (showClearConfirm) {
-            localStorage.clear();
+            await clearAllDataContext();
             window.location.reload();
         } else {
             setShowClearConfirm(true);
             setTimeout(() => setShowClearConfirm(false), 5000);
+        }
+    };
+
+    const handleForceUpdate = async () => {
+        try {
+            // Unregister all service workers
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+                await registration.unregister();
+            }
+            // Clear caches
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+            // Reload the page
+            window.location.reload(true);
+        } catch (error) {
+            console.error('Force update failed:', error);
+            alert('Failed to force update. Please try closing and reopening the app.');
         }
     };
 
@@ -249,8 +267,18 @@ export const Settings = () => {
                 <div className="setting-item">
                     <div className="setting-info">
                         <label className="setting-label">Version</label>
-                        <p className="setting-description">ExpenseFlow v1.0.0</p>
+                        <p className="setting-description">ExpenseFlow v1.0.1</p>
                     </div>
+                </div>
+
+                <div className="setting-item">
+                    <div className="setting-info">
+                        <label className="setting-label">Force Update</label>
+                        <p className="setting-description">Clear cache and reload the latest version</p>
+                    </div>
+                    <button className="btn btn-secondary" onClick={handleForceUpdate}>
+                        🔄 Update Now
+                    </button>
                 </div>
 
                 <div className="setting-item">

@@ -25,7 +25,7 @@ function App() {
   return (
     <AuthProvider>
       <GlobalProvider>
-        <Router>
+        <Router basename={import.meta.env.BASE_URL}>
           <Header />
           <div className="app-content">
             <Routes>
