@@ -1,7 +1,7 @@
-import React, { useState, useContext } from 'react'
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useContext, useEffect } from 'react'
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { GlobalContext } from '../context/GlobalState';
-import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from '../utils/categories';
+import { DEFAULT_CATEGORY } from '../utils/categories';
 
 export const AddTransaction = () => {
     const [text, setText] = useState('');
@@ -10,9 +10,27 @@ export const AddTransaction = () => {
     const [category, setCategory] = useState(DEFAULT_CATEGORY);
     const [error, setError] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
+    const [isEditing, setIsEditing] = useState(false);
+    const [editId, setEditId] = useState(null);
 
-    const { addTransaction } = useContext(GlobalContext);
+    const { addTransaction, updateTransaction, categories } = useContext(GlobalContext);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state && location.state.transaction) {
+            const { transaction } = location.state;
+            setIsEditing(true);
+            setEditId(transaction.id);
+            setText(transaction.text);
+            setAmount(Math.abs(transaction.amount));
+            setType(transaction.amount < 0 ? 'expense' : 'income');
+            setCategory(transaction.category || DEFAULT_CATEGORY);
+            if (transaction.date) {
+                setDate(new Date(transaction.date).toISOString().split('T')[0]);
+            }
+        }
+    }, [location.state]);
 
     const onSubmit = async e => {
         e.preventDefault();
@@ -20,8 +38,8 @@ export const AddTransaction = () => {
 
         const finalAmount = type === 'expense' ? -Math.abs(amount) : Math.abs(amount);
 
-        const newTransaction = {
-            id: Math.floor(Math.random() * 100000000),
+        const transactionData = {
+            id: isEditing ? editId : Math.floor(Math.random() * 100000000),
             text,
             amount: +finalAmount,
             date: new Date(date).toISOString(),
@@ -29,20 +47,24 @@ export const AddTransaction = () => {
         }
 
         try {
-            await addTransaction(newTransaction);
+            if (isEditing) {
+                await updateTransaction(transactionData);
+            } else {
+                await addTransaction(transactionData);
+            }
 
             // Navigate to transactions page
             navigate('/transactions');
         } catch (err) {
-            console.error("Error adding transaction:", err);
-            setError('Failed to add transaction. Please check your connection or permissions.');
+            console.error("Error saving transaction:", err);
+            setError('Failed to save transaction. Please check your connection or permissions.');
         }
     }
 
     return (
         <div className="glass-panel">
             <div className="flex-between" style={{ marginBottom: '25px' }}>
-                <h3>Add New Transaction</h3>
+                <h3>{isEditing ? 'Edit Transaction' : 'Add New Transaction'}</h3>
                 <Link to="/transactions" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.3s' }} onMouseOver={(e) => e.target.style.color = '#fff'} onMouseOut={(e) => e.target.style.color = 'var(--text-secondary)'}>Cancel</Link>
             </div>
 
@@ -72,7 +94,7 @@ export const AddTransaction = () => {
                             style={{ cursor: 'pointer', appearance: 'none' }}
                         >
                             <option value={DEFAULT_CATEGORY} style={{ color: 'black' }}>Select Category</option>
-                            {EXPENSE_CATEGORIES.map(cat => (
+                            {categories.map(cat => (
                                 <option key={cat} value={cat} style={{ color: 'black' }}>{cat}</option>
                             ))}
                         </select>
@@ -121,7 +143,7 @@ export const AddTransaction = () => {
                         step="0.01"
                     />
                 </div>
-                <button className="btn">Add Transaction</button>
+                <button className="btn">{isEditing ? 'Update Transaction' : 'Add Transaction'}</button>
             </form>
         </div>
     )

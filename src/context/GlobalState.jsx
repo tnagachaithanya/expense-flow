@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, setDoc, writeBatch } from 'firebase/firestore';
 import { firebaseConfig } from '../firebase/firebaseConfig';
+import { EXPENSE_CATEGORIES } from '../utils/categories';
 
 // Initialize Firebase (once)
 const app = initializeApp(firebaseConfig);
@@ -14,6 +15,7 @@ const initialState = {
     budgets: JSON.parse(localStorage.getItem('budgets')) || [],
     recurringTransactions: JSON.parse(localStorage.getItem('recurringTransactions')) || [],
     goals: JSON.parse(localStorage.getItem('goals')) || [],
+    categories: JSON.parse(localStorage.getItem('categories')) || EXPENSE_CATEGORIES,
     settings: JSON.parse(localStorage.getItem('settings')) || {
         currency: 'USD',
         theme: 'dark',
@@ -62,6 +64,13 @@ const AppReducer = (state, action) => {
             return { ...state, goals: state.goals.map(g => (g.id === action.payload.id ? action.payload : g)) };
         case 'DELETE_GOAL':
             return { ...state, goals: state.goals.filter(g => g.id !== action.payload) };
+        // Category actions
+        case 'SET_CATEGORIES':
+            return { ...state, categories: action.payload };
+        case 'ADD_CATEGORY':
+            return { ...state, categories: [...state.categories, action.payload] };
+        case 'DELETE_CATEGORY':
+            return { ...state, categories: state.categories.filter(c => c !== action.payload) };
         // Settings actions
         case 'UPDATE_SETTINGS':
             return { ...state, settings: { ...state.settings, ...action.payload } };
@@ -71,6 +80,7 @@ const AppReducer = (state, action) => {
                 budgets: [],
                 recurringTransactions: [],
                 goals: [],
+                categories: EXPENSE_CATEGORIES,
                 settings: {
                     currency: 'USD',
                     theme: 'dark',
@@ -113,6 +123,16 @@ export const GlobalProvider = ({ children }) => {
                 const settingsData = settingsSnap.docs[0].data();
                 dispatch({ type: 'SET_SETTINGS', payload: settingsData });
             }
+
+            // Categories
+            const catCol = collection(db, `users/${currentUser.uid}/categories`);
+            const catSnap = await getDocs(catCol);
+            if (!catSnap.empty) {
+                const catData = catSnap.docs[0].data();
+                if (catData.list) {
+                    dispatch({ type: 'SET_CATEGORIES', payload: catData.list });
+                }
+            }
         };
         fetchData();
     }, [currentUser]);
@@ -137,6 +157,11 @@ export const GlobalProvider = ({ children }) => {
         if (currentUser) return;
         localStorage.setItem('goals', JSON.stringify(state.goals));
     }, [state.goals, currentUser]);
+
+    useEffect(() => {
+        if (currentUser) return;
+        localStorage.setItem('categories', JSON.stringify(state.categories));
+    }, [state.categories, currentUser]);
 
     useEffect(() => {
         if (currentUser) return;
@@ -165,9 +190,12 @@ export const GlobalProvider = ({ children }) => {
         }
     };
 
-    const updateTransaction = transaction => {
+    const updateTransaction = async transaction => {
         dispatch({ type: 'UPDATE_TRANSACTION', payload: transaction });
-        // Firestore update omitted for brevity – can be added later
+        if (currentUser) {
+            const docRef = doc(db, `users/${currentUser.uid}/transactions`, transaction.id);
+            await setDoc(docRef, transaction, { merge: true }).catch(console.error);
+        }
     };
 
     // Budget actions (Firestore sync omitted for brevity)
@@ -195,6 +223,25 @@ export const GlobalProvider = ({ children }) => {
         }
     };
 
+    // Category actions – also persist to Firestore when logged in
+    const addCategory = async category => {
+        dispatch({ type: 'ADD_CATEGORY', payload: category });
+        if (currentUser) {
+            const docRef = doc(db, `users/${currentUser.uid}/categories`, 'list');
+            const newList = [...state.categories, category];
+            await setDoc(docRef, { list: newList }, { merge: true }).catch(console.error);
+        }
+    };
+
+    const deleteCategory = async category => {
+        dispatch({ type: 'DELETE_CATEGORY', payload: category });
+        if (currentUser) {
+            const docRef = doc(db, `users/${currentUser.uid}/categories`, 'list');
+            const newList = state.categories.filter(c => c !== category);
+            await setDoc(docRef, { list: newList }, { merge: true }).catch(console.error);
+        }
+    };
+
     const clearAllData = async () => {
         if (currentUser) {
             const batch = writeBatch(db);
@@ -217,7 +264,8 @@ export const GlobalProvider = ({ children }) => {
                 queueDeletes('budgets'),
                 queueDeletes('recurringTransactions'),
                 queueDeletes('goals'),
-                queueDeletes('settings')
+                queueDeletes('settings'),
+                queueDeletes('categories')
             ]);
             console.log("Committing batch delete...");
 
@@ -235,6 +283,7 @@ export const GlobalProvider = ({ children }) => {
                 budgets: state.budgets,
                 recurringTransactions: state.recurringTransactions,
                 goals: state.goals,
+                categories: state.categories,
                 settings: state.settings,
                 deleteTransaction,
                 addTransaction,
@@ -248,6 +297,8 @@ export const GlobalProvider = ({ children }) => {
                 addGoal,
                 updateGoal,
                 deleteGoal,
+                addCategory,
+                deleteCategory,
                 updateSettings,
                 clearAllData,
             }}

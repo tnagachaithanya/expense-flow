@@ -3,25 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { GlobalContext } from '../context/GlobalState';
 import { ThemeManager } from '../utils/ThemeManager';
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from '../utils/categories';
+import { CURRENCIES } from '../utils/currency';
 import { useAuth } from '../context/AuthContext';
 import './Settings.css';
 
 export const Settings = () => {
-    const { settings, updateSettings, transactions, budgets, goals, clearAllData: clearAllDataContext } = useContext(GlobalContext);
+    const { settings, updateSettings, transactions, budgets, goals, categories, addCategory, deleteCategory, clearAllData: clearAllDataContext } = useContext(GlobalContext);
     const { currentUser, logout } = useAuth();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [currentTheme, setCurrentTheme] = useState(ThemeManager.getTheme());
+    const [newCategory, setNewCategory] = useState('');
+    const [categoryError, setCategoryError] = useState('');
     const navigate = useNavigate();
-
-    const currencies = [
-        { code: 'USD', symbol: '$', name: 'US Dollar' },
-        { code: 'EUR', symbol: '€', name: 'Euro' },
-        { code: 'GBP', symbol: '£', name: 'British Pound' },
-        { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
-        { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
-        { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
-        { code: 'INR', symbol: '₹', name: 'Indian Rupee' }
-    ];
 
     const handleSettingChange = (key, value) => {
         updateSettings({ [key]: value });
@@ -88,6 +81,27 @@ export const Settings = () => {
         }
     };
 
+    const handleAddCategory = async () => {
+        const trimmed = newCategory.trim();
+        if (!trimmed) {
+            setCategoryError('Category name cannot be empty');
+            return;
+        }
+        if (categories.includes(trimmed)) {
+            setCategoryError('Category already exists');
+            return;
+        }
+        await addCategory(trimmed);
+        setNewCategory('');
+        setCategoryError('');
+    };
+
+    const handleDeleteCategory = async (category) => {
+        if (window.confirm(`Delete category "${category}"?`)) {
+            await deleteCategory(category);
+        }
+    };
+
     return (
         <div className="settings-page">
             <div className="settings-header glass-panel">
@@ -131,7 +145,7 @@ export const Settings = () => {
                         value={settings.currency}
                         onChange={(e) => handleSettingChange('currency', e.target.value)}
                     >
-                        {currencies.map(curr => (
+                        {CURRENCIES.map(curr => (
                             <option key={curr.code} value={curr.code}>
                                 {curr.symbol} {curr.name}
                             </option>
@@ -171,10 +185,60 @@ export const Settings = () => {
                         onChange={(e) => handleSettingChange('defaultCategory', e.target.value)}
                     >
                         <option value={DEFAULT_CATEGORY}>{DEFAULT_CATEGORY}</option>
-                        {EXPENSE_CATEGORIES.map(cat => (
+                        {categories.map(cat => (
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
                     </select>
+                </div>
+            </div>
+
+            {/* Category Management */}
+            <div className="settings-section glass-panel">
+                <h3 className="section-title">📂 Category Management</h3>
+
+                <div className="setting-item">
+                    <div className="setting-info">
+                        <label className="setting-label">Add New Category</label>
+                        <p className="setting-description">Create custom expense categories</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexDirection: 'column', width: '100%', maxWidth: '300px' }}>
+                        <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+                            <input
+                                type="text"
+                                value={newCategory}
+                                onChange={(e) => setNewCategory(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
+                                placeholder="e.g. Travel, Gym"
+                                className="form-input"
+                                style={{ flex: 1 }}
+                            />
+                            <button className="btn btn-secondary" onClick={handleAddCategory}>
+                                Add
+                            </button>
+                        </div>
+                        {categoryError && <p style={{ color: 'var(--error-color)', fontSize: '0.85rem', margin: 0 }}>{categoryError}</p>}
+                    </div>
+                </div>
+
+                <div className="setting-item">
+                    <div className="setting-info">
+                        <label className="setting-label">Current Categories</label>
+                        <p className="setting-description">{categories.length} categories</p>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxWidth: '400px' }}>
+                        {categories.map(cat => (
+                            <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--surface-bg)', padding: '5px 10px', borderRadius: '15px', fontSize: '0.9rem' }}>
+                                <span>{cat}</span>
+                                <button
+                                    onClick={() => handleDeleteCategory(cat)}
+                                    style={{ background: 'none', border: 'none', color: 'var(--error-color)', cursor: 'pointer', padding: '0 5px', fontSize: '1rem' }}
+                                    aria-label={`Delete ${cat}`}
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 

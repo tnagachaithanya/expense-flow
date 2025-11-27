@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { GlobalContext } from '../context/GlobalState';
 import { TransactionList } from '../components/TransactionList';
 import { useNavigate } from 'react-router-dom';
+import { EXPENSE_CATEGORIES } from '../utils/categories';
 import './TransactionPage.css';
 
 export const TransactionPage = () => {
@@ -12,7 +13,7 @@ export const TransactionPage = () => {
     const [filterType, setFilterType] = useState('all');
     const [sortBy, setSortBy] = useState('date-desc');
 
-    const categories = ['All', 'Groceries', 'Restaurants', 'Bills', 'Medicine', 'Transportation', 'Entertainment', 'Shopping', 'Other', 'Uncategorized'];
+    const categories = ['All', ...EXPENSE_CATEGORIES, 'Uncategorized'];
 
     // Filter and search logic
     let filteredTransactions = transactions.filter(t => {

@@ -1,8 +1,9 @@
 import React, { useContext } from 'react';
 import { GlobalContext } from '../context/GlobalState';
+import { getCurrencySymbol } from '../utils/currency';
 
 export const Summary = () => {
-    const { transactions } = useContext(GlobalContext);
+    const { transactions, settings } = useContext(GlobalContext);
 
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -29,6 +30,7 @@ export const Summary = () => {
 
     const monthly = calculateTotals(monthlyTransactions);
     const yearly = calculateTotals(yearlyTransactions);
+    const currencySymbol = getCurrencySymbol(settings.currency);
 
     return (
         <div className="glass-panel" style={{ marginBottom: '20px' }}>
@@ -38,16 +40,16 @@ export const Summary = () => {
                 <div style={{ flex: 1, marginRight: '10px' }}>
                     <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>This Month</h4>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-                        <span style={{ color: 'var(--income-color)' }}>+${monthly.income.toFixed(2)}</span>
-                        <span style={{ color: 'var(--expense-color)' }}>-${monthly.expense.toFixed(2)}</span>
+                        <span style={{ color: 'var(--income-color)' }}>+{currencySymbol}{monthly.income.toFixed(2)}</span>
+                        <span style={{ color: 'var(--expense-color)' }}>-{currencySymbol}{monthly.expense.toFixed(2)}</span>
                     </div>
                 </div>
                 <div style={{ width: '1px', background: 'var(--surface-border)', height: '40px' }}></div>
                 <div style={{ flex: 1, marginLeft: '10px' }}>
                     <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>This Year ({currentYear})</h4>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-                        <span style={{ color: 'var(--income-color)' }}>+${yearly.income.toFixed(2)}</span>
-                        <span style={{ color: 'var(--expense-color)' }}>-${yearly.expense.toFixed(2)}</span>
+                        <span style={{ color: 'var(--income-color)' }}>+{currencySymbol}{yearly.income.toFixed(2)}</span>
+                        <span style={{ color: 'var(--expense-color)' }}>-{currencySymbol}{yearly.expense.toFixed(2)}</span>
                     </div>
                 </div>
             </div>

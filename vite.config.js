@@ -11,7 +11,8 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
-        cleanupOutdatedCaches: true
+        cleanupOutdatedCaches: true,
+        globIgnores: ['**/node_modules/**/*', '**/wipeable-list.esm.js']
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
