@@ -193,8 +193,13 @@ export const GlobalProvider = ({ children }) => {
     const updateTransaction = async transaction => {
         dispatch({ type: 'UPDATE_TRANSACTION', payload: transaction });
         if (currentUser) {
-            const docRef = doc(db, `users/${currentUser.uid}/transactions`, transaction.id);
-            await setDoc(docRef, transaction, { merge: true }).catch(console.error);
+            try {
+                const docRef = doc(db, `users/${currentUser.uid}/transactions`, String(transaction.id));
+                await setDoc(docRef, transaction, { merge: true });
+            } catch (error) {
+                console.error('Error updating transaction in Firestore:', error);
+                throw error;
+            }
         }
     };
 

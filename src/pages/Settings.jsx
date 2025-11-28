@@ -125,7 +125,7 @@ export const Settings = () => {
                         <label className="setting-label">Sign Out</label>
                         <p className="setting-description">Log out of your account</p>
                     </div>
-                    <button className="btn btn-secondary" onClick={handleLogout}>
+                    <button className="btn btn-secondary btn-auto" onClick={handleLogout}>
                         Sign Out
                     </button>
                 </div>
@@ -201,7 +201,7 @@ export const Settings = () => {
                         <label className="setting-label">Add New Category</label>
                         <p className="setting-description">Create custom expense categories</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexDirection: 'column', width: '100%', maxWidth: '300px' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexDirection: 'column', width: '100%', maxWidth: '500px' }}>
                         <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
                             <input
                                 type="text"
@@ -212,7 +212,7 @@ export const Settings = () => {
                                 className="form-input"
                                 style={{ flex: 1 }}
                             />
-                            <button className="btn btn-secondary" onClick={handleAddCategory}>
+                            <button className="btn btn-secondary btn-auto" onClick={handleAddCategory}>
                                 Add
                             </button>
                         </div>
@@ -288,7 +288,7 @@ export const Settings = () => {
                         <label className="setting-label">Export Data</label>
                         <p className="setting-description">Download all your data as JSON backup</p>
                     </div>
-                    <button className="btn btn-secondary" onClick={exportAllData}>
+                    <button className="btn btn-secondary btn-auto" onClick={exportAllData}>
                         📥 Export
                     </button>
                 </div>
@@ -312,7 +312,7 @@ export const Settings = () => {
                         </p>
                     </div>
                     <button
-                        className={`btn ${showClearConfirm ? 'btn-danger-confirm' : 'btn-danger'}`}
+                        className={`btn btn-auto ${showClearConfirm ? 'btn-danger-confirm' : 'btn-danger'}`}
                         onClick={clearAllData}
                     >
                         {showClearConfirm ? '⚠️ Confirm Delete' : '🗑️ Clear Data'}
@@ -336,7 +336,7 @@ export const Settings = () => {
                         <label className="setting-label">Force Update</label>
                         <p className="setting-description">Clear cache and reload the latest version</p>
                     </div>
-                    <button className="btn btn-secondary" onClick={handleForceUpdate}>
+                    <button className="btn btn-secondary btn-auto" onClick={handleForceUpdate}>
                         🔄 Update Now
                     </button>
                 </div>

@@ -7,6 +7,7 @@ import {
     SwipeableListItem,
     SwipeAction,
     TrailingActions,
+    Type,
 } from 'react-swipeable-list';
 import 'react-swipeable-list/dist/styles.css';
 
@@ -33,7 +34,7 @@ export const TransactionList = ({ transactions: propTransactions }) => {
         <>
             <h3 className="list-header">History</h3>
             <div className="transaction-list-wrapper">
-                <SwipeableList fullWidth={true}>
+                <SwipeableList fullWidth={true} type={Type.IOS}>
                     {transactions.map(transaction => (
                         <SwipeableListItem
                             key={transaction.id}
@@ -67,9 +68,8 @@ export const TransactionList = ({ transactions: propTransactions }) => {
                                             alignItems: 'center',
                                             justifyContent: 'center'
                                         }}
-                                        aria-label="Edit transaction"
                                     >
-                                        <i className="fas fa-edit"></i>
+                                        Edit
                                     </button>
                                 </div>
                             </div>
