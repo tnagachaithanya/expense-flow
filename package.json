@@ -2,6 +2,7 @@
   "name": "antigravity-agenticai",
   "private": true,
   "version": "1.0.0",
+  "homepage": "https://tnagachaithanya.github.io/expense-flow/",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -19,8 +19,8 @@ export default defineConfig({
         name: 'ExpenseFlow',
         short_name: 'ExpenseFlow',
         description: 'Premium Expense Tracker',
-        start_url: '/antigravity-agenticai/',
-        scope: '/antigravity-agenticai/',
+        start_url: '/expense-flow/',
+        scope: '/expense-flow/',
         theme_color: '#1a1a2e',
         background_color: '#1a1a2e',
         display: 'standalone',
@@ -39,5 +39,5 @@ export default defineConfig({
       }
     })
   ],
-  base: '/antigravity-agenticai/',
+  base: '/expense-flow/',
 })
