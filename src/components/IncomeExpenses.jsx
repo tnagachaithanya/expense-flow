@@ -2,8 +2,9 @@ import React, { useContext } from 'react';
 import { GlobalContext } from '../context/GlobalState';
 import { getCurrencySymbol } from '../utils/currency';
 
-export const IncomeExpenses = () => {
-    const { transactions, settings } = useContext(GlobalContext);
+export const IncomeExpenses = ({ transactions: propTransactions }) => {
+    const { transactions: contextTransactions, settings } = useContext(GlobalContext);
+    const transactions = propTransactions || contextTransactions;
 
     const amounts = transactions.map(transaction => transaction.amount);
 

@@ -17,11 +17,11 @@ export const TransactionList = ({ transactions: propTransactions }) => {
     const navigate = useNavigate();
     const currencySymbol = getCurrencySymbol(settings.currency);
 
-    const trailingActions = (id) => (
+    const trailingActions = (transaction) => (
         <TrailingActions>
             <SwipeAction
                 destructive={true}
-                onClick={() => deleteTransaction(id)}
+                onClick={() => deleteTransaction(transaction)}
             >
                 <div className="swipe-action-delete">
                     <i className="fas fa-trash"></i>
@@ -38,7 +38,7 @@ export const TransactionList = ({ transactions: propTransactions }) => {
                     {transactions.map(transaction => (
                         <SwipeableListItem
                             key={transaction.id}
-                            trailingActions={trailingActions(transaction.id)}
+                            trailingActions={trailingActions(transaction)}
                         >
                             <div className={`transaction-item ${transaction.amount < 0 ? 'minus' : 'plus'}`} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'var(--card-bg)', borderRight: `5px solid ${transaction.amount < 0 ? '#c0392b' : '#2ecc71'}` }}>
                                 <div className="transaction-info" style={{ flex: 1 }}>
@@ -46,6 +46,11 @@ export const TransactionList = ({ transactions: propTransactions }) => {
                                     <div className="transaction-date" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                         {transaction.date ? new Date(transaction.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : 'No Date'}
                                     </div>
+                                    {transaction.addedByName && (
+                                        <div className="transaction-attribution" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: '2px' }}>
+                                            Added by {transaction.addedByName}
+                                        </div>
+                                    )}
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                     <span className={`money ${transaction.amount < 0 ? 'minus' : 'plus'}`} style={{ fontWeight: 'bold' }}>

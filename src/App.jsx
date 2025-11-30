@@ -7,6 +7,7 @@ import { TabNavigation } from './components/TabNavigation';
 import { TransactionPage } from './pages/TransactionPage';
 import { Budget } from './pages/Budget';
 import { Reports } from './pages/Reports';
+import { Family } from './pages/Family';
 import { Settings } from './pages/Settings';
 import { ThemeManager } from './utils/ThemeManager';
 import { GlobalProvider } from './context/GlobalState';
@@ -35,6 +36,7 @@ function App() {
               <Route path="/add" element={<PrivateRoute><AddTransaction /></PrivateRoute>} />
               <Route path="/budget" element={<PrivateRoute><Budget /></PrivateRoute>} />
               <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
+              <Route path="/family" element={<PrivateRoute><Family /></PrivateRoute>} />
               <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
             </Routes>
           </div>

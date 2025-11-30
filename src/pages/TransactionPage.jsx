@@ -6,8 +6,9 @@ import { EXPENSE_CATEGORIES } from '../utils/categories';
 import './TransactionPage.css';
 
 export const TransactionPage = () => {
-    const { transactions } = useContext(GlobalContext);
+    const { transactions, familyTransactions, family } = useContext(GlobalContext);
     const navigate = useNavigate();
+    const [viewMode, setViewMode] = useState('personal');
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState('all');
     const [filterType, setFilterType] = useState('all');
@@ -15,8 +16,10 @@ export const TransactionPage = () => {
 
     const categories = ['All', ...EXPENSE_CATEGORIES, 'Uncategorized'];
 
+    const currentTransactions = viewMode === 'family' ? (familyTransactions || []) : transactions;
+
     // Filter and search logic
-    let filteredTransactions = transactions.filter(t => {
+    let filteredTransactions = currentTransactions.filter(t => {
         const matchesSearch = t.text.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = filterCategory === 'all' || t.category === filterCategory;
         const matchesType = filterType === 'all' ||
@@ -58,7 +61,43 @@ export const TransactionPage = () => {
     return (
         <div className="transaction-page">
             <div className="transaction-header glass-panel">
-                <h2>Transactions</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <h2>Transactions</h2>
+                    {family && (
+                        <div className="view-toggle" style={{ display: 'flex', background: 'rgba(255,255,255,0.1)', borderRadius: '15px', padding: '3px' }}>
+                            <button
+                                onClick={() => setViewMode('personal')}
+                                style={{
+                                    background: viewMode === 'personal' ? 'var(--accent-color)' : 'transparent',
+                                    color: viewMode === 'personal' ? 'white' : 'var(--text-secondary)',
+                                    border: 'none',
+                                    padding: '5px 12px',
+                                    borderRadius: '12px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Personal
+                            </button>
+                            <button
+                                onClick={() => setViewMode('family')}
+                                style={{
+                                    background: viewMode === 'family' ? 'var(--accent-color)' : 'transparent',
+                                    color: viewMode === 'family' ? 'white' : 'var(--text-secondary)',
+                                    border: 'none',
+                                    padding: '5px 12px',
+                                    borderRadius: '12px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Family
+                            </button>
+                        </div>
+                    )}
+                </div>
                 <button className="btn btn-add" onClick={() => navigate('/add')}>
                     + Add Transaction
                 </button>
@@ -139,7 +178,7 @@ export const TransactionPage = () => {
                 {filteredTransactions.length === 0 ? (
                     <div className="glass-panel" style={{ textAlign: 'center', padding: '40px' }}>
                         <p style={{ color: 'var(--text-secondary)' }}>
-                            {transactions.length === 0
+                            {currentTransactions.length === 0
                                 ? 'No transactions yet. Add your first transaction!'
                                 : 'No transactions match your filters.'}
                         </p>

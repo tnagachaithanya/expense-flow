@@ -2,8 +2,9 @@ import React, { useContext } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { GlobalContext } from '../context/GlobalState';
 
-export const ExpenseChart = () => {
-    const { transactions } = useContext(GlobalContext);
+export const ExpenseChart = ({ transactions: propTransactions }) => {
+    const { transactions: contextTransactions } = useContext(GlobalContext);
+    const transactions = propTransactions || contextTransactions;
 
     // Filter only expenses
     const expenses = transactions.filter(t => t.amount < 0);

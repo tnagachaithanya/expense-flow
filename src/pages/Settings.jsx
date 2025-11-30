@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import './Settings.css';
 
 export const Settings = () => {
-    const { settings, updateSettings, transactions, budgets, goals, categories, addCategory, deleteCategory, clearAllData: clearAllDataContext } = useContext(GlobalContext);
+    const { settings, updateSettings, transactions, budgets, goals, categories, addCategory, deleteCategory, clearAllData: clearAllDataContext, familyInvitations } = useContext(GlobalContext);
     const { currentUser, logout } = useAuth();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [currentTheme, setCurrentTheme] = useState(ThemeManager.getTheme());
@@ -127,6 +127,26 @@ export const Settings = () => {
                     </div>
                     <button className="btn btn-secondary btn-auto" onClick={handleLogout}>
                         Sign Out
+                    </button>
+                </div>
+            </div>
+
+            {/* Family Section */}
+            <div className="settings-section glass-panel">
+                <h3 className="section-title">👨‍👩‍👧‍👦 Family</h3>
+
+                <div className="setting-item">
+                    <div className="setting-info">
+                        <label className="setting-label">Family Sharing</label>
+                        <p className="setting-description">Manage your family group and members</p>
+                    </div>
+                    <button className="btn btn-secondary btn-auto" onClick={() => navigate('/family')} style={{ position: 'relative' }}>
+                        Manage
+                        {familyInvitations && familyInvitations.length > 0 && (
+                            <span className="notification-badge" style={{ top: '-8px', right: '-8px' }}>
+                                {familyInvitations.length}
+                            </span>
+                        )}
                     </button>
                 </div>
             </div>

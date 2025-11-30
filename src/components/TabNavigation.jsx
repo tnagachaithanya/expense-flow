@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
+import { GlobalContext } from '../context/GlobalState';
 import './TabNavigation.css';
 
 export const TabNavigation = () => {
+    const { familyInvitations } = useContext(GlobalContext);
+    const hasNotifications = familyInvitations && familyInvitations.length > 0;
+
     return (
         <nav className="tab-navigation">
             <NavLink to="/" className={({ isActive }) => isActive ? 'tab-item active' : 'tab-item'} end>
@@ -39,10 +43,13 @@ export const TabNavigation = () => {
             </NavLink>
 
             <NavLink to="/settings" className={({ isActive }) => isActive ? 'tab-item active' : 'tab-item'}>
-                <svg className="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M12 1v6m0 6v6m8.66-15l-3 5.196M6.34 15.804l-3 5.196M23 12h-6m-6 0H5m15.66 8.66l-3-5.196M6.34 8.196l-3-5.196"></path>
-                </svg>
+                <div style={{ position: 'relative' }}>
+                    <svg className="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m8.66-15l-3 5.196M6.34 15.804l-3 5.196M23 12h-6m-6 0H5m15.66 8.66l-3-5.196M6.34 8.196l-3-5.196"></path>
+                    </svg>
+                    {hasNotifications && <span className="notification-badge">{familyInvitations.length}</span>}
+                </div>
                 <span className="tab-label">Settings</span>
             </NavLink>
         </nav>

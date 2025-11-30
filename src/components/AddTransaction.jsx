@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { GlobalContext } from '../context/GlobalState';
+import { useAuth } from '../context/AuthContext';
 import { DEFAULT_CATEGORY } from '../utils/categories';
 
 export const AddTransaction = () => {
@@ -12,14 +13,18 @@ export const AddTransaction = () => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
+    const [addToFamily, setAddToFamily] = useState(false);
+    const [originalTransaction, setOriginalTransaction] = useState(null);
 
-    const { addTransaction, updateTransaction, categories } = useContext(GlobalContext);
+    const { addTransaction, updateTransaction, categories, family } = useContext(GlobalContext);
+    const { currentUser } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
         if (location.state && location.state.transaction) {
             const { transaction } = location.state;
+            setOriginalTransaction(transaction); // Store original transaction
             setIsEditing(true);
             setEditId(transaction.id);
             setText(transaction.text);
@@ -28,6 +33,10 @@ export const AddTransaction = () => {
             setCategory(transaction.category || DEFAULT_CATEGORY);
             if (transaction.date) {
                 setDate(new Date(transaction.date).toISOString().split('T')[0]);
+            }
+            // If editing, check if it belongs to family
+            if (transaction.familyId) {
+                setAddToFamily(true);
             }
         }
     }, [location.state]);
@@ -43,7 +52,17 @@ export const AddTransaction = () => {
             text,
             amount: +finalAmount,
             date: new Date(date).toISOString(),
-            category: type === 'expense' ? category : 'Income'
+            category: type === 'expense' ? category : 'Income',
+            // Preserve original family metadata when editing, or add new metadata when creating
+            ...(isEditing && originalTransaction?.familyId ? {
+                familyId: originalTransaction.familyId,
+                addedBy: originalTransaction.addedBy,
+                addedByName: originalTransaction.addedByName
+            } : addToFamily && family ? {
+                familyId: family.familyId,
+                addedBy: currentUser.uid,
+                addedByName: currentUser.displayName || currentUser.email
+            } : {})
         }
 
         try {
@@ -143,6 +162,22 @@ export const AddTransaction = () => {
                         step="0.01"
                     />
                 </div>
+
+                {family && (
+                    <div className="form-control" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <input
+                            type="checkbox"
+                            id="addToFamily"
+                            checked={addToFamily}
+                            onChange={(e) => setAddToFamily(e.target.checked)}
+                            style={{ width: '20px', height: '20px' }}
+                        />
+                        <label htmlFor="addToFamily" className="form-label" style={{ marginBottom: 0 }}>
+                            Add to Family ({family.familyName})
+                        </label>
+                    </div>
+                )}
+
                 <button className="btn">{isEditing ? 'Update Transaction' : 'Add Transaction'}</button>
             </form>
         </div>

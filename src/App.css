@@ -85,3 +85,32 @@
     padding: 12px !important;
   }
 }
+
+/* Notification Badge */
+.notification-badge {
+  position: absolute;
+  top: 5px;
+  right: 20px;
+  background-color: #ff4444;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--surface-bg);
+  font-weight: bold;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tab-item {
+  position: relative;
+}
+
+.tab-item .notification-badge {
+  top: 5px;
+  right: 25%;
+}

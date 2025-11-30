@@ -2,8 +2,9 @@ import React, { useContext } from 'react';
 import { GlobalContext } from '../context/GlobalState';
 import { getCurrencySymbol } from '../utils/currency';
 
-export const Summary = () => {
-    const { transactions, settings } = useContext(GlobalContext);
+export const Summary = ({ transactions: propTransactions }) => {
+    const { transactions: contextTransactions, settings } = useContext(GlobalContext);
+    const transactions = propTransactions || contextTransactions;
 
     const now = new Date();
     const currentMonth = now.getMonth();
