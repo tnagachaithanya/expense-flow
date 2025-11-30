@@ -34,21 +34,6 @@ firebase deploy --only firestore:rules
 - Any authenticated user can create a family
 - Only family members can read/update the family document
 - Only the family creator can delete the family
-
-### Family Transactions
-- Only family members can read family transactions
-- Family members can create transactions (must set their own UID as `addedBy`)
-- Only the transaction creator can update/delete their own transactions
-
-### Family Invitations
-- Any authenticated user can create invitations
-- Only the invited user or inviter can read the invitation
-- Only the invited user can update (accept/decline)
-- Only the inviter can delete the invitation
-- **Joining Validation:** Users joining a family are validated by their email matching the invitation recipient, ensuring secure access without complex ID requirements.
-
-## Testing Rules
-After deploying, test the rules by:
 1. Creating a family
 2. Inviting a member
 3. Adding family transactions

@@ -139,6 +139,29 @@
     color: var(--text-primary);
 }
 
+/* Toggle Button Styles (matching Budget page) */
+.toggle-btn {
+    padding: 8px 16px !important;
+    /* Override view-toggle button styles */
+    border: 2px solid var(--surface-border) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-secondary) !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--accent-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.toggle-btn.active {
+    background: var(--accent-color) !important;
+    color: white !important;
+    border-color: var(--accent-color) !important;
+}
+
 /* Charts Row */
 .charts-row {
     display: grid;

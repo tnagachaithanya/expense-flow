@@ -59,14 +59,14 @@ export const TransactionList = ({ transactions: propTransactions }) => {
                                     <button
                                         onClick={() => navigate('/add', { state: { transaction } })}
                                         className="btn-edit"
+                                        title="Edit"
                                         style={{
                                             background: 'var(--surface-bg)',
                                             border: '1px solid var(--surface-border)',
                                             color: 'var(--text-primary)',
                                             cursor: 'pointer',
-                                            fontSize: '1.2rem',
-                                            padding: '8px 12px',
-                                            borderRadius: '5px',
+                                            padding: '8px',
+                                            borderRadius: '8px',
                                             minWidth: '44px',
                                             minHeight: '44px',
                                             display: 'flex',
@@ -74,7 +74,10 @@ export const TransactionList = ({ transactions: propTransactions }) => {
                                             justifyContent: 'center'
                                         }}
                                     >
-                                        Edit
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '18px', height: '18px' }}>
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
                                     </button>
                                 </div>
                             </div>

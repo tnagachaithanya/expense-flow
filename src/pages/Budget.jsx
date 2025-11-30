@@ -5,13 +5,22 @@ import { EXPENSE_CATEGORIES } from '../utils/categories';
 import './Budget.css';
 
 export const Budget = () => {
-    const { budgets, transactions, addBudget, updateBudget, deleteBudget } = useContext(GlobalContext);
+    const {
+        budgets,
+        transactions,
+        addBudget,
+        updateBudget,
+        deleteBudget,
+        family,
+        familyTransactions
+    } = useContext(GlobalContext);
+
     const [showForm, setShowForm] = useState(false);
     const [category, setCategory] = useState('');
     const [limit, setLimit] = useState('');
     const [editingId, setEditingId] = useState(null);
-
-
+    const [viewMode, setViewMode] = useState('personal'); // 'personal' or 'family'
+    const [isFamily, setIsFamily] = useState(false); // Whether creating a family budget
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -23,7 +32,8 @@ export const Budget = () => {
             category,
             limit: parseFloat(limit),
             month: new Date().getMonth(),
-            year: new Date().getFullYear()
+            year: new Date().getFullYear(),
+            isFamily: isFamily
         };
 
         if (editingId) {
@@ -35,6 +45,7 @@ export const Budget = () => {
 
         setCategory('');
         setLimit('');
+        setIsFamily(false);
         setShowForm(false);
     };
 
@@ -42,6 +53,7 @@ export const Budget = () => {
         setCategory(budget.category);
         setLimit(budget.limit.toString());
         setEditingId(budget.id);
+        setIsFamily(budget.isFamily || false);
         setShowForm(true);
     };
 
@@ -49,17 +61,26 @@ export const Budget = () => {
         setCategory('');
         setLimit('');
         setEditingId(null);
+        setIsFamily(false);
         setShowForm(false);
     };
 
-    // Get current month budgets
+    // Get current month budgets based on view mode
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    const currentBudgets = budgets.filter(b => b.month === currentMonth && b.year === currentYear);
+
+    const currentBudgets = budgets.filter(b => {
+        const isCurrentMonth = b.month === currentMonth && b.year === currentYear;
+        if (viewMode === 'family') {
+            return isCurrentMonth && b.isFamily;
+        }
+        return isCurrentMonth && !b.isFamily;
+    });
 
     // Calculate spent amount for each category
     const getSpentAmount = (category) => {
-        const monthlyExpenses = transactions.filter(t => {
+        const txList = viewMode === 'family' ? familyTransactions : transactions;
+        const monthlyExpenses = txList.filter(t => {
             const date = new Date(t.date);
             return t.amount < 0 &&
                 t.category === category &&
@@ -75,8 +96,26 @@ export const Budget = () => {
                 <h2>Budget Management</h2>
                 <p className="budget-subtitle">Track your spending limits for {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
 
+                {/* Personal/Family Toggle */}
+                {family && (
+                    <div className="view-toggle" style={{ marginTop: '15px' }}>
+                        <button
+                            className={`toggle-btn ${viewMode === 'personal' ? 'active' : ''}`}
+                            onClick={() => setViewMode('personal')}
+                        >
+                            👤 Personal
+                        </button>
+                        <button
+                            className={`toggle-btn ${viewMode === 'family' ? 'active' : ''}`}
+                            onClick={() => setViewMode('family')}
+                        >
+                            👨‍👩‍👧‍👦 Family
+                        </button>
+                    </div>
+                )}
+
                 {!showForm && (
-                    <button className="btn" onClick={() => setShowForm(true)}>
+                    <button className="btn" onClick={() => setShowForm(true)} style={{ marginTop: '15px' }}>
                         + Add Budget
                     </button>
                 )}
@@ -114,6 +153,23 @@ export const Budget = () => {
                             />
                         </div>
 
+                        {family && (
+                            <div className="form-control">
+                                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={isFamily}
+                                        onChange={(e) => setIsFamily(e.target.checked)}
+                                        style={{ width: 'auto' }}
+                                    />
+                                    Family Budget
+                                </label>
+                                <p className="form-description" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '5px' }}>
+                                    Check this to create a budget for your family
+                                </p>
+                            </div>
+                        )}
+
                         <div className="form-buttons">
                             <button type="submit" className="btn">
                                 {editingId ? 'Update' : 'Add'} Budget
@@ -130,7 +186,7 @@ export const Budget = () => {
                 {currentBudgets.length === 0 ? (
                     <div className="glass-panel" style={{ textAlign: 'center', padding: '40px' }}>
                         <p style={{ color: 'var(--text-secondary)' }}>
-                            No budgets set for this month. Click "Add Budget" to get started!
+                            No {viewMode === 'family' ? 'family ' : ''}budgets set for this month. Click "Add Budget" to get started!
                         </p>
                     </div>
                 ) : (

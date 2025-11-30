@@ -1,10 +1,15 @@
 import React, { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 import { GlobalContext } from '../context/GlobalState';
+import { useAuth } from '../context/AuthContext';
 import './TabNavigation.css';
 
 export const TabNavigation = () => {
+    const { currentUser } = useAuth();
     const { familyInvitations } = useContext(GlobalContext);
+
+    if (!currentUser) return null;
+
     const hasNotifications = familyInvitations && familyInvitations.length > 0;
 
     return (

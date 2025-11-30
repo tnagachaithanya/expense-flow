@@ -4,9 +4,10 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import './Reports.css';
 
 export const Reports = () => {
-    const { transactions, budgets } = useContext(GlobalContext);
+    const { transactions, familyTransactions, family } = useContext(GlobalContext);
     const [dateRange, setDateRange] = useState('thisMonth');
     const [viewType, setViewType] = useState('daily');
+    const [viewMode, setViewMode] = useState('personal'); // 'personal' or 'family'
 
     // Date range calculations
     const getDateRange = () => {
@@ -34,13 +35,14 @@ export const Reports = () => {
 
     const { start, end } = getDateRange();
 
-    // Filter transactions by date range
+    // Filter transactions by date range and view mode
     const filteredTransactions = useMemo(() => {
-        return transactions.filter(t => {
+        const txList = viewMode === 'family' ? familyTransactions : transactions;
+        return txList.filter(t => {
             const date = new Date(t.date);
             return date >= start && date <= end;
         });
-    }, [transactions, start, end]);
+    }, [transactions, familyTransactions, start, end, viewMode]);
 
     // Calculate overview stats
     const stats = useMemo(() => {
@@ -122,7 +124,7 @@ export const Reports = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `expense-report-${dateRange}.csv`;
+        a.download = `expense-report-${viewMode}-${dateRange}.csv`;
         a.click();
     };
 
@@ -130,6 +132,23 @@ export const Reports = () => {
         <div className="reports-page">
             <div className="reports-header glass-panel">
                 <h2>Reports & Analytics</h2>
+
+                {family && (
+                    <div className="view-toggle" style={{ marginBottom: '15px', justifyContent: 'flex-start' }}>
+                        <button
+                            className={`toggle-btn ${viewMode === 'personal' ? 'active' : ''}`}
+                            onClick={() => setViewMode('personal')}
+                        >
+                            Personal
+                        </button>
+                        <button
+                            className={`toggle-btn ${viewMode === 'family' ? 'active' : ''}`}
+                            onClick={() => setViewMode('family')}
+                        >
+                            Family
+                        </button>
+                    </div>
+                )}
 
                 <div className="report-controls">
                     <select

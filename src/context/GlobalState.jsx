@@ -140,11 +140,18 @@ export const GlobalProvider = ({ children }) => {
             const txData = txSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             dispatch({ type: 'SET_TRANSACTIONS', payload: txData });
 
-            // Budgets
+            // Budgets - fetch personal budgets first
             const budCol = collection(db, `users/${currentUser.uid}/budgets`);
             const budSnap = await getDocs(budCol);
-            const budData = budSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-            dispatch({ type: 'SET_BUDGETS', payload: budData });
+            const budData = budSnap.docs.map(d => {
+                const data = d.data();
+                return {
+                    id: d.id,
+                    ...data,
+                    isFamily: data.isFamily || false
+                };
+            });
+            console.log('Fetched personal budgets:', budData);
 
             // Settings (single document)
             const settingsCol = collection(db, `users/${currentUser.uid}/settings`);
@@ -194,7 +201,22 @@ export const GlobalProvider = ({ children }) => {
                         const familyTxData = familyTxSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                         console.log('Fetched family transactions:', familyTxData);
                         dispatch({ type: 'SET_FAMILY_TRANSACTIONS', payload: familyTxData });
+
+                        // Fetch Family Budgets
+                        const familyBudCol = collection(db, `families/${userData.familyId}/budgets`);
+                        const familyBudSnap = await getDocs(familyBudCol);
+                        const familyBudData = familyBudSnap.docs.map(d => ({ id: d.id, ...d.data(), isFamily: true }));
+                        // Combine personal and family budgets
+                        const combinedBudgets = [...budData, ...familyBudData];
+                        console.log('Combined budgets:', combinedBudgets);
+                        dispatch({ type: 'SET_BUDGETS', payload: combinedBudgets });
+                    } else {
+                        // User is not in a family, just set personal budgets
+                        dispatch({ type: 'SET_BUDGETS', payload: budData });
                     }
+                } else {
+                    // User document doesn't exist, just set personal budgets
+                    dispatch({ type: 'SET_BUDGETS', payload: budData });
                 }
             }
 
@@ -345,10 +367,71 @@ export const GlobalProvider = ({ children }) => {
         }
     };
 
-    // Budget actions (Firestore sync omitted for brevity)
-    const addBudget = budget => dispatch({ type: 'ADD_BUDGET', payload: budget });
-    const updateBudget = budget => dispatch({ type: 'UPDATE_BUDGET', payload: budget });
-    const deleteBudget = id => dispatch({ type: 'DELETE_BUDGET', payload: id });
+    // Budget actions with Firestore sync
+    const addBudget = async (budget) => {
+        if (currentUser) {
+            if (budget.isFamily && state.family) {
+                // Add to Family Collection
+                const colRef = collection(db, `families/${state.family.familyId}/budgets`);
+                const docRef = await addDoc(colRef, budget);
+                if (docRef) {
+                    const newBudget = { ...budget, id: docRef.id };
+                    dispatch({ type: 'ADD_BUDGET', payload: newBudget });
+                }
+            } else {
+                // Add to Personal Collection
+                const colRef = collection(db, `users/${currentUser.uid}/budgets`);
+                const docRef = await addDoc(colRef, budget);
+                if (docRef) {
+                    const newBudget = { ...budget, id: docRef.id };
+                    dispatch({ type: 'ADD_BUDGET', payload: newBudget });
+                }
+            }
+        } else {
+            dispatch({ type: 'ADD_BUDGET', payload: budget });
+        }
+    };
+
+    const updateBudget = async (budget) => {
+        if (currentUser) {
+            try {
+                if (budget.isFamily && state.family) {
+                    // Update in Family Collection
+                    const docRef = doc(db, `families/${state.family.familyId}/budgets`, String(budget.id));
+                    await setDoc(docRef, budget, { merge: true });
+                } else {
+                    // Update in Personal Collection
+                    const docRef = doc(db, `users/${currentUser.uid}/budgets`, String(budget.id));
+                    await setDoc(docRef, budget, { merge: true });
+                }
+                dispatch({ type: 'UPDATE_BUDGET', payload: budget });
+            } catch (error) {
+                console.error('Error updating budget in Firestore:', error);
+                throw error;
+            }
+        } else {
+            dispatch({ type: 'UPDATE_BUDGET', payload: budget });
+        }
+    };
+
+    const deleteBudget = async (id) => {
+        if (currentUser) {
+            // Find the budget to determine if it's family or personal
+            const budget = state.budgets.find(b => b.id === id);
+            if (budget) {
+                if (budget.isFamily && state.family) {
+                    // Delete from Family Collection
+                    const docRef = doc(db, `families/${state.family.familyId}/budgets`, String(id));
+                    await deleteDoc(docRef).catch(console.error);
+                } else {
+                    // Delete from Personal Collection
+                    const docRef = doc(db, `users/${currentUser.uid}/budgets`, String(id));
+                    await deleteDoc(docRef).catch(console.error);
+                }
+            }
+        }
+        dispatch({ type: 'DELETE_BUDGET', payload: id });
+    };
 
     // Recurring actions
     const addRecurring = recurring => dispatch({ type: 'ADD_RECURRING', payload: recurring });

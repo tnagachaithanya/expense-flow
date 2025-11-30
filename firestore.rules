@@ -99,6 +99,13 @@ service cloud.firestore {
         allow create: if isFamilyMember(familyId) && request.resource.data.addedBy == request.auth.uid;
         allow update, delete: if isFamilyMember(familyId) && resource.data.addedBy == request.auth.uid;
       }
+      
+      // Family budgets subcollection
+      match /budgets/{budgetId} {
+        allow read: if isFamilyMember(familyId);
+        allow create: if isFamilyMember(familyId);
+        allow update, delete: if isFamilyMember(familyId);
+      }
     }
     
     // Family invitations collection
