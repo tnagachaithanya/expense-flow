@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { GlobalContext } from '../context/GlobalState';
 import { useAuth } from '../context/AuthContext';
 import { DEFAULT_CATEGORY } from '../utils/categories';
+import { formatDateForInput, parseInputDate, getEffectiveTimezone } from '../utils/dateUtils';
 
 export const AddTransaction = () => {
     const [text, setText] = useState('');
@@ -10,18 +11,21 @@ export const AddTransaction = () => {
     const [type, setType] = useState('expense'); // 'income' or 'expense'
     const [category, setCategory] = useState(DEFAULT_CATEGORY);
     const [error, setError] = useState('');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]); // Default to today
+    const [date, setDate] = useState(''); // Will be set based on timezone
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
     const [addToFamily, setAddToFamily] = useState(false);
     const [originalTransaction, setOriginalTransaction] = useState(null);
 
-    const { addTransaction, updateTransaction, categories, family } = useContext(GlobalContext);
+    const { addTransaction, updateTransaction, categories, family, settings } = useContext(GlobalContext);
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
+        const tz = getEffectiveTimezone(settings?.timezone);
+        console.log('AddTransaction: timezone =', tz);
+
         if (location.state && location.state.transaction) {
             const { transaction } = location.state;
             setOriginalTransaction(transaction); // Store original transaction
@@ -32,14 +36,22 @@ export const AddTransaction = () => {
             setType(transaction.amount < 0 ? 'expense' : 'income');
             setCategory(transaction.category || DEFAULT_CATEGORY);
             if (transaction.date) {
-                setDate(new Date(transaction.date).toISOString().split('T')[0]);
+                const formattedDate = formatDateForInput(transaction.date, tz);
+                console.log('Setting date from transaction:', formattedDate);
+                setDate(formattedDate);
             }
             // If editing, check if it belongs to family
             if (transaction.familyId) {
                 setAddToFamily(true);
             }
+        } else {
+            // Set default date to today in user's timezone
+            const now = new Date();
+            const formattedDate = formatDateForInput(now, tz);
+            console.log('Setting default date:', formattedDate, 'for timezone:', tz);
+            setDate(formattedDate);
         }
-    }, [location.state]);
+    }, [location.state, settings?.timezone]);
 
     const onSubmit = async e => {
         e.preventDefault();
@@ -51,7 +63,7 @@ export const AddTransaction = () => {
             id: isEditing ? editId : Math.floor(Math.random() * 100000000),
             text,
             amount: +finalAmount,
-            date: new Date(date).toISOString(),
+            date: parseInputDate(date, getEffectiveTimezone(settings.timezone)),
             category: type === 'expense' ? category : 'Income',
             // Preserve original family metadata when editing, or add new metadata when creating
             ...(isEditing && originalTransaction?.familyId ? {
@@ -131,7 +143,7 @@ export const AddTransaction = () => {
                             threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
                             return threeMonthsAgo.toISOString().split('T')[0];
                         })()}
-                        max={new Date().toISOString().split('T')[0]}
+                        max={formatDateForInput(new Date(), getEffectiveTimezone(settings?.timezone))}
                         className="form-input"
                         required
                     />

@@ -4,6 +4,7 @@ import { GlobalContext } from '../context/GlobalState';
 import { ThemeManager } from '../utils/ThemeManager';
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from '../utils/categories';
 import { CURRENCIES } from '../utils/currency';
+import { COMMON_TIMEZONES, getBrowserTimezone } from '../utils/dateUtils';
 import { useAuth } from '../context/AuthContext';
 import './Settings.css';
 
@@ -168,6 +169,27 @@ export const Settings = () => {
                         {CURRENCIES.map(curr => (
                             <option key={curr.code} value={curr.code}>
                                 {curr.symbol} {curr.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="setting-item">
+                    <div className="setting-info">
+                        <label className="setting-label">Timezone</label>
+                        <p className="setting-description">
+                            Select your timezone for accurate date/time handling
+                            {settings.timezone === 'auto' && ` (Detected: ${getBrowserTimezone()})`}
+                        </p>
+                    </div>
+                    <select
+                        className="setting-select"
+                        value={settings.timezone || 'auto'}
+                        onChange={(e) => handleSettingChange('timezone', e.target.value)}
+                    >
+                        {COMMON_TIMEZONES.map(tz => (
+                            <option key={tz.value} value={tz.value}>
+                                {tz.label}
                             </option>
                         ))}
                     </select>

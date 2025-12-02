@@ -4,6 +4,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, setDoc, writeBatch, getDoc, query, where, updateDoc } from 'firebase/firestore';
 import { firebaseConfig } from '../firebase/firebaseConfig';
 import { EXPENSE_CATEGORIES } from '../utils/categories';
+import { getBrowserTimezone } from '../utils/dateUtils';
 
 // Initialize Firebase (once)
 const app = initializeApp(firebaseConfig);
@@ -21,6 +22,7 @@ const initialState = {
         theme: 'dark',
         defaultCategory: 'Uncategorized',
         notifications: true,
+        timezone: 'auto', // Auto-detect or specific IANA timezone
     },
     family: null, // Current user's family data
     familyMembers: [], // Members of the current family

@@ -10,12 +10,21 @@ import {
     Type,
 } from 'react-swipeable-list';
 import 'react-swipeable-list/dist/styles.css';
+import { formatDisplayDate, getEffectiveTimezone } from '../utils/dateUtils';
 
 export const TransactionList = ({ transactions: propTransactions }) => {
     const { transactions: contextTransactions, deleteTransaction, settings } = useContext(GlobalContext);
     const transactions = propTransactions || contextTransactions;
     const navigate = useNavigate();
     const currencySymbol = getCurrencySymbol(settings.currency);
+
+    const effectiveTimezone = getEffectiveTimezone(settings?.timezone);
+    console.log('TransactionList - settings.timezone:', settings?.timezone);
+    console.log('TransactionList - effectiveTimezone:', effectiveTimezone);
+    if (transactions.length > 0) {
+        console.log('Sample transaction date:', transactions[0].date);
+        console.log('Formatted date:', formatDisplayDate(transactions[0].date, effectiveTimezone));
+    }
 
     const trailingActions = (transaction) => (
         <TrailingActions>
@@ -44,7 +53,7 @@ export const TransactionList = ({ transactions: propTransactions }) => {
                                 <div className="transaction-info" style={{ flex: 1 }}>
                                     <div className="transaction-text" style={{ fontWeight: 'bold' }}>{transaction.text}</div>
                                     <div className="transaction-date" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                        {transaction.date ? new Date(transaction.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : 'No Date'}
+                                        {transaction.date ? formatDisplayDate(transaction.date, effectiveTimezone) : 'No Date'}
                                     </div>
                                     {transaction.addedByName && (
                                         <div className="transaction-attribution" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: '2px' }}>
