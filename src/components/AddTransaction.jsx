@@ -67,7 +67,7 @@ export const AddTransaction = () => {
 
         try {
             if (isEditing) {
-                await updateTransaction(transactionData);
+                await updateTransaction(transactionData, originalTransaction);
             } else {
                 await addTransaction(transactionData);
             }

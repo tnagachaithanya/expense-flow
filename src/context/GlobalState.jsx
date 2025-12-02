@@ -137,7 +137,7 @@ export const GlobalProvider = ({ children }) => {
             // Transactions
             const txCol = collection(db, `users/${currentUser.uid}/transactions`);
             const txSnap = await getDocs(txCol);
-            const txData = txSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const txData = txSnap.docs.map(d => ({ ...d.data(), id: d.id }));
             dispatch({ type: 'SET_TRANSACTIONS', payload: txData });
 
             // Budgets - fetch personal budgets first
@@ -146,8 +146,8 @@ export const GlobalProvider = ({ children }) => {
             const budData = budSnap.docs.map(d => {
                 const data = d.data();
                 return {
-                    id: d.id,
                     ...data,
+                    id: d.id,
                     isFamily: data.isFamily || false
                 };
             });
@@ -198,14 +198,14 @@ export const GlobalProvider = ({ children }) => {
                         // Fetch Family Transactions
                         const familyTxCol = collection(db, `families/${userData.familyId}/transactions`);
                         const familyTxSnap = await getDocs(familyTxCol);
-                        const familyTxData = familyTxSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const familyTxData = familyTxSnap.docs.map(d => ({ ...d.data(), id: d.id }));
                         console.log('Fetched family transactions:', familyTxData);
                         dispatch({ type: 'SET_FAMILY_TRANSACTIONS', payload: familyTxData });
 
                         // Fetch Family Budgets
                         const familyBudCol = collection(db, `families/${userData.familyId}/budgets`);
                         const familyBudSnap = await getDocs(familyBudCol);
-                        const familyBudData = familyBudSnap.docs.map(d => ({ id: d.id, ...d.data(), isFamily: true }));
+                        const familyBudData = familyBudSnap.docs.map(d => ({ ...d.data(), id: d.id, isFamily: true }));
                         // Combine personal and family budgets
                         const combinedBudgets = [...budData, ...familyBudData];
                         console.log('Combined budgets:', combinedBudgets);
@@ -322,8 +322,9 @@ export const GlobalProvider = ({ children }) => {
             if (transaction.familyId) {
                 console.log('Adding family transaction:', transaction);
                 // Add to Family Collection
+                const { id, ...dataToSave } = transaction;
                 const colRef = collection(db, `families/${transaction.familyId}/transactions`);
-                const docRef = await addDoc(colRef, transaction);
+                const docRef = await addDoc(colRef, dataToSave);
                 if (docRef) {
                     console.log('Family transaction added, dispatching');
                     const newTx = { ...transaction, id: docRef.id };
@@ -331,8 +332,9 @@ export const GlobalProvider = ({ children }) => {
                 }
             } else {
                 // Add to Personal Collection
+                const { id, ...dataToSave } = transaction;
                 const colRef = collection(db, `users/${currentUser.uid}/transactions`);
-                const docRef = await addDoc(colRef, transaction);
+                const docRef = await addDoc(colRef, dataToSave);
                 if (docRef) {
                     const newTx = { ...transaction, id: docRef.id };
                     dispatch({ type: 'ADD_TRANSACTION', payload: newTx });
@@ -343,20 +345,67 @@ export const GlobalProvider = ({ children }) => {
         }
     };
 
-    const updateTransaction = async transaction => {
+    const updateTransaction = async (transaction, originalTransaction = null) => {
         if (currentUser) {
             try {
-                if (transaction.familyId) {
-                    // Update in Family Collection
-                    const docRef = doc(db, `families/${transaction.familyId}/transactions`, String(transaction.id));
-                    await setDoc(docRef, transaction, { merge: true });
-                    // Update family transactions state
-                    dispatch({ type: 'SET_FAMILY_TRANSACTIONS', payload: (state.familyTransactions || []).map(t => t.id === transaction.id ? transaction : t) });
+                const isFamily = !!transaction.familyId;
+                const wasFamily = originalTransaction && !!originalTransaction.familyId;
+                const scopeChanged = originalTransaction && (isFamily !== wasFamily);
+
+                if (scopeChanged) {
+                    // Moving between Personal and Family
+                    if (isFamily) {
+                        // Move: Personal -> Family
+                        console.log('Moving transaction from Personal to Family');
+
+                        // 1. Save to Family
+                        const { id, ...dataToSave } = transaction;
+                        const docRef = doc(db, `families/${transaction.familyId}/transactions`, String(transaction.id));
+                        await setDoc(docRef, dataToSave, { merge: true });
+
+                        // 2. Delete from Personal
+                        const oldDocRef = doc(db, `users/${currentUser.uid}/transactions`, String(transaction.id));
+                        await deleteDoc(oldDocRef);
+
+                        // 3. Update State
+                        dispatch({ type: 'DELETE_TRANSACTION', payload: transaction.id }); // Remove from personal
+                        dispatch({ type: 'ADD_FAMILY_TRANSACTION', payload: transaction }); // Add to family
+                    } else {
+                        // Move: Family -> Personal
+                        console.log('Moving transaction from Family to Personal');
+
+                        // 1. Save to Personal
+                        const { id, ...dataToSave } = transaction;
+                        const docRef = doc(db, `users/${currentUser.uid}/transactions`, String(transaction.id));
+                        await setDoc(docRef, dataToSave, { merge: true });
+
+                        // 2. Delete from Family
+                        const oldDocRef = doc(db, `families/${originalTransaction.familyId}/transactions`, String(transaction.id));
+                        await deleteDoc(oldDocRef);
+
+                        // 3. Update State
+                        // Remove from family state
+                        const newFamilyTx = (state.familyTransactions || []).filter(t => t.id !== transaction.id);
+                        dispatch({ type: 'SET_FAMILY_TRANSACTIONS', payload: newFamilyTx });
+                        // Add to personal state
+                        dispatch({ type: 'ADD_TRANSACTION', payload: transaction });
+                    }
                 } else {
-                    // Update in Personal Collection
-                    const docRef = doc(db, `users/${currentUser.uid}/transactions`, String(transaction.id));
-                    await setDoc(docRef, transaction, { merge: true });
-                    dispatch({ type: 'UPDATE_TRANSACTION', payload: transaction });
+                    // Standard Update (Same Scope)
+                    if (transaction.familyId) {
+                        // Update in Family Collection
+                        const { id, ...dataToSave } = transaction;
+                        const docRef = doc(db, `families/${transaction.familyId}/transactions`, String(transaction.id));
+                        await setDoc(docRef, dataToSave, { merge: true });
+                        // Update family transactions state
+                        dispatch({ type: 'SET_FAMILY_TRANSACTIONS', payload: (state.familyTransactions || []).map(t => t.id === transaction.id ? transaction : t) });
+                    } else {
+                        // Update in Personal Collection
+                        const { id, ...dataToSave } = transaction;
+                        const docRef = doc(db, `users/${currentUser.uid}/transactions`, String(transaction.id));
+                        await setDoc(docRef, dataToSave, { merge: true });
+                        dispatch({ type: 'UPDATE_TRANSACTION', payload: transaction });
+                    }
                 }
             } catch (error) {
                 console.error('Error updating transaction in Firestore:', error);
@@ -372,16 +421,18 @@ export const GlobalProvider = ({ children }) => {
         if (currentUser) {
             if (budget.isFamily && state.family) {
                 // Add to Family Collection
+                const { id, ...dataToSave } = budget;
                 const colRef = collection(db, `families/${state.family.familyId}/budgets`);
-                const docRef = await addDoc(colRef, budget);
+                const docRef = await addDoc(colRef, dataToSave);
                 if (docRef) {
                     const newBudget = { ...budget, id: docRef.id };
                     dispatch({ type: 'ADD_BUDGET', payload: newBudget });
                 }
             } else {
                 // Add to Personal Collection
+                const { id, ...dataToSave } = budget;
                 const colRef = collection(db, `users/${currentUser.uid}/budgets`);
-                const docRef = await addDoc(colRef, budget);
+                const docRef = await addDoc(colRef, dataToSave);
                 if (docRef) {
                     const newBudget = { ...budget, id: docRef.id };
                     dispatch({ type: 'ADD_BUDGET', payload: newBudget });
@@ -397,12 +448,14 @@ export const GlobalProvider = ({ children }) => {
             try {
                 if (budget.isFamily && state.family) {
                     // Update in Family Collection
+                    const { id, ...dataToSave } = budget;
                     const docRef = doc(db, `families/${state.family.familyId}/budgets`, String(budget.id));
-                    await setDoc(docRef, budget, { merge: true });
+                    await setDoc(docRef, dataToSave, { merge: true });
                 } else {
                     // Update in Personal Collection
+                    const { id, ...dataToSave } = budget;
                     const docRef = doc(db, `users/${currentUser.uid}/budgets`, String(budget.id));
-                    await setDoc(docRef, budget, { merge: true });
+                    await setDoc(docRef, dataToSave, { merge: true });
                 }
                 dispatch({ type: 'UPDATE_BUDGET', payload: budget });
             } catch (error) {
