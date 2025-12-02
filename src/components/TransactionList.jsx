@@ -34,7 +34,7 @@ export const TransactionList = ({ transactions: propTransactions }) => {
         <>
             <h3 className="list-header">History</h3>
             <div className="transaction-list-wrapper">
-                <SwipeableList fullWidth={true} type={Type.IOS}>
+                <SwipeableList fullWidth={true} type={Type.ANDROID} threshold={0.3}>
                     {transactions.map(transaction => (
                         <SwipeableListItem
                             key={transaction.id}
